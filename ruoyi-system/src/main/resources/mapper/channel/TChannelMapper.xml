@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.channel.mapper.TChannelMapper">
+    
+    <resultMap type="TChannel" id="TChannelResult">
+        <result property="channelId"    column="channel_id"    />
+        <result property="merchantId"    column="merchant_id"    />
+        <result property="name"    column="name"    />
+        <result property="code"    column="code"    />
+        <result property="balanceApiStatus"    column="balance_api_status"    />
+        <result property="limitAmountDay"    column="limit_amount_day"    />
+        <result property="status"    column="status"    />
+        <result property="priKey"    column="pri_key"    />
+        <result property="apiUrl"    column="api_url"    />
+        <result property="remark"    column="remark"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="channelRate"    column="channel_rate"    />
+        <result property="alias"    column="alias"    />
+        <result property="productId"    column="product_id"    />
+        <result property="minAmount"    column="min_amount"    />
+        <result property="maxAmount"    column="max_amount"    />
+        <result property="fixAmount"    column="fix_amount"    />
+        <result property="channelType"    column="channel_type"    />
+    </resultMap>
+
+    <sql id="selectTChannelVo">
+        select channel_id, merchant_id, name, code, balance_api_status, limit_amount_day, status, pri_key, api_url, remark, create_by, create_time, update_by, update_time,channel_rate,
+        alias,
+        product_id,
+        min_amount,
+        max_amount,
+        fix_amount,
+        channel_type
+        from t_channel
+    </sql>
+
+    <select id="selectTChannelList" parameterType="TChannel" resultMap="TChannelResult">
+        <include refid="selectTChannelVo"/>
+        <where>
+            product_id != 'A999'
+            <if test="merchantId != null  and merchantId != ''"> and merchant_id = #{merchantId}</if>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="alias != null "> and alias = #{alias}</if>
+        </where>
+    </select>
+    
+    <select id="selectTChannelById" parameterType="Integer" resultMap="TChannelResult">
+        <include refid="selectTChannelVo"/>
+        where channel_id = #{channelId}
+    </select>
+        
+    <insert id="insertTChannel" parameterType="TChannel" useGeneratedKeys="true" keyProperty="channelId">
+        insert into t_channel
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="merchantId != null and merchantId != ''">merchant_id,</if>
+            <if test="name != null and name != ''">name,</if>
+            <if test="code != null">code,</if>
+            <if test="balanceApiStatus != null">balance_api_status,</if>
+            <if test="limitAmountDay != null">limit_amount_day,</if>
+            <if test="status != null">status,</if>
+            <if test="priKey != null and priKey != ''">pri_key,</if>
+            <if test="apiUrl != null and apiUrl != ''">api_url,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="merchantId != null and merchantId != ''">#{merchantId},</if>
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="code != null">#{code},</if>
+            <if test="balanceApiStatus != null">#{balanceApiStatus},</if>
+            <if test="limitAmountDay != null">#{limitAmountDay},</if>
+            <if test="status != null">#{status},</if>
+            <if test="priKey != null and priKey != ''">#{priKey},</if>
+            <if test="apiUrl != null and apiUrl != ''">#{apiUrl},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTChannel" parameterType="TChannel">
+        update t_channel
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="merchantId != null and merchantId != ''">merchant_id = #{merchantId},</if>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="code != null">code = #{code},</if>
+            <if test="balanceApiStatus != null">balance_api_status = #{balanceApiStatus},</if>
+            <if test="limitAmountDay != null">limit_amount_day = #{limitAmountDay},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="priKey != null and priKey != ''">pri_key = #{priKey},</if>
+            <if test="apiUrl != null and apiUrl != ''">api_url = #{apiUrl},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="channelRate != null">channel_rate = #{channelRate},</if>
+            <if test="minAmount != null">min_amount = #{minAmount},</if>
+            <if test="maxAmount != null">max_amount = #{maxAmount},</if>
+            <if test="fixAmount != null and fixAmount !=''">fix_amount = #{fixAmount},</if>
+            <if test="channelType != null and channelType !=''">channel_type = #{channelType},</if>
+        </trim>
+        where channel_id = #{channelId}
+    </update>
+
+    <delete id="deleteTChannelById" parameterType="Integer">
+        delete from t_channel where channel_id = #{channelId}
+    </delete>
+
+    <delete id="deleteTChannelByIds" parameterType="String">
+        delete from t_channel where channel_id in 
+        <foreach item="channelId" collection="array" open="(" separator="," close=")">
+            #{channelId}
+        </foreach>
+    </delete>
+</mapper>

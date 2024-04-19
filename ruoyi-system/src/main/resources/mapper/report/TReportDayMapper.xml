@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.report.mapper.TReportDayMapper">
+
+    <resultMap type="TReportDay" id="TReportDayResult">
+        <result property="id"    column="id"    />
+        <result property="mchId"    column="mch_id"    />
+        <result property="username"    column="username"    />
+        <result property="depositCount"    column="deposit_count"    />
+        <result property="depositAmount"    column="deposit_amount"    />
+        <result property="withdrawCount"    column="withdraw_count"    />
+        <result property="withdrawAmount"    column="withdraw_amount"    />
+        <result property="usdtProfit"    column="usdt_profit"    />
+        <result property="daifuProfit"    column="daifu_profit"    />
+        <result property="rechargeProfit"    column="recharge_profit"    />
+        <result property="reportDate"    column="report_date"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="usdtIncome" column="usdt_income" />
+    </resultMap>
+
+    <sql id="selectTReportDayVo">
+        select id, mch_id, username, deposit_count, deposit_amount, withdraw_count, withdraw_amount, usdt_profit, daifu_profit, recharge_profit, report_date, create_time,usdt_income from t_report_day
+    </sql>
+
+    <select id="selectTReportDayList" parameterType="com.ruoyi.common.dto.ReportDayDTO" resultMap="TReportDayResult">
+        <include refid="selectTReportDayVo"/>
+        <where>
+            <if test="mchId != null "> and mch_id = #{mchId}</if>
+            <if test="username != null  and username != ''"> and username like concat('%', #{username}, '%')</if>
+            <if test="begin != null "> and report_date >= #{begin}</if>
+            <if test="end != null "> and report_date &lt;= #{end}</if>
+        </where>
+        order by report_date desc, mch_id 
+    </select>
+
+    <select id="reportDayList" parameterType="com.ruoyi.common.dto.ReportDayDTO" resultType="java.util.Map">
+        select  ifnull(sum(deposit_count),0)as depositCount,ifnull(sum(deposit_amount),0) as depositAmount,
+        ifnull(sum(withdraw_count),0) as withdrawCount,ifnull(sum(withdraw_amount),0) as  withdrawAmount,
+        ifnull(sum(usdt_profit),0) as usdtProfit, ifnull(sum(daifu_profit),0) as daifuProfit,ifnull(sum(recharge_profit),0) as rechargeProfit,
+        ifnull(sum(usdt_income),0) as usdtIncome
+        from t_report_day
+        <where>
+            <if test="mchId != null "> and mch_id = #{mchId}</if>
+            <if test="username != null  and username != ''"> and username like concat('%', #{username}, '%')</if>
+            <if test="begin != null "> and report_date >= #{begin}</if>
+            <if test="end != null "> and report_date &lt;= #{end}</if>
+        </where>
+
+    </select>
+
+    <select id="selectTReportDayById" parameterType="Long" resultMap="TReportDayResult">
+        <include refid="selectTReportDayVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTReportDay" parameterType="TReportDay" useGeneratedKeys="true" keyProperty="id">
+        insert into t_report_day
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="mchId != null">mch_id,</if>
+            <if test="username != null">username,</if>
+            <if test="depositCount != null">deposit_count,</if>
+            <if test="depositAmount != null">deposit_amount,</if>
+            <if test="withdrawCount != null">withdraw_count,</if>
+            <if test="withdrawAmount != null">withdraw_amount,</if>
+            <if test="usdtProfit != null">usdt_profit,</if>
+            <if test="daifuProfit != null">daifu_profit,</if>
+            <if test="rechargeProfit != null">recharge_profit,</if>
+            <if test="reportDate != null">report_date,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="usdtIncome != null">usdt_income,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="mchId != null">#{mchId},</if>
+            <if test="username != null">#{username},</if>
+            <if test="depositCount != null">#{depositCount},</if>
+            <if test="depositAmount != null">#{depositAmount},</if>
+            <if test="withdrawCount != null">#{withdrawCount},</if>
+            <if test="withdrawAmount != null">#{withdrawAmount},</if>
+            <if test="usdtProfit != null">#{usdtProfit},</if>
+            <if test="daifuProfit != null">#{daifuProfit},</if>
+            <if test="rechargeProfit != null">#{rechargeProfit},</if>
+            <if test="reportDate != null">#{reportDate},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="usdtIncome != null">#{usdtIncome},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTReportDay" parameterType="TReportDay">
+        update t_report_day
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="mchId != null">mch_id = #{mchId},</if>
+            <if test="username != null">username = #{username},</if>
+            <if test="depositCount != null">deposit_count = #{depositCount},</if>
+            <if test="depositAmount != null">deposit_amount = #{depositAmount},</if>
+            <if test="withdrawCount != null">withdraw_count = #{withdrawCount},</if>
+            <if test="withdrawAmount != null">withdraw_amount = #{withdrawAmount},</if>
+            <if test="usdtProfit != null">usdt_profit = #{usdtProfit},</if>
+            <if test="daifuProfit != null">daifu_profit = #{daifuProfit},</if>
+            <if test="rechargeProfit != null">recharge_profit = #{rechargeProfit},</if>
+            <if test="reportDate != null">report_date = #{reportDate},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTReportDayById" parameterType="Long">
+        delete from t_report_day where id = #{id}
+    </delete>
+
+    <delete id="deleteTReportDayByIds" parameterType="String">
+        delete from t_report_day where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

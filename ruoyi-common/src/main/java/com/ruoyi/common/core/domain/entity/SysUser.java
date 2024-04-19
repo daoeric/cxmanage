@@ -89,6 +89,33 @@ public class SysUser extends BaseEntity
     /** 角色ID */
     private Long roleId;
 
+    /**
+     * 谷歌二维码
+     */
+    private String googleCode;
+
+
+    /**
+     * 是否绑定过谷歌
+     */
+    private Integer safeMode;
+
+    public String getGoogleCode() {
+        return googleCode;
+    }
+
+    public void setGoogleCode(String googleCode) {
+        this.googleCode = googleCode;
+    }
+
+    public Integer getSafeMode() {
+        return safeMode;
+    }
+
+    public void setSafeMode(Integer safeMode) {
+        this.safeMode = safeMode;
+    }
+
     public SysUser()
     {
 

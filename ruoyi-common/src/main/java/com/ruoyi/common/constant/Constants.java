@@ -170,4 +170,13 @@ public class Constants
      */
     public static final String[] JOB_ERROR_STR = { "java.net.URL", "javax.naming.InitialContext", "org.yaml.snakeyaml",
             "org.springframework", "org.apache", "com.ruoyi.common.utils.file", "com.ruoyi.common.config", "com.ruoyi.generator" };
+
+    /**
+     * 客户端API接口前缀标识
+     */
+    public final static String CLIENT_URL_PREFIX = "/merchant";
+
+    public static final String RUJIN_CODE = "A999";
+
+    public static final String DAIFU_CODE = "A888";
 }

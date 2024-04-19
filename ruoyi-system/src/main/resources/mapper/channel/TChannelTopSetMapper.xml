@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.channel.mapper.TChannelTopSetMapper">
+    
+    <resultMap type="TChannelTopSet" id="TChannelTopSetResult">
+        <result property="id"    column="id"    />
+        <result property="productId"    column="product_id"    />
+        <result property="channelIds"    column="channel_ids"    />
+        <result property="status"    column="status"    />
+        <result property="mode"    column="mode"    />
+        <result property="rate"    column="rate"    />
+        <result property="daifuFee"    column="daifu_fee"    />
+        <result property="daifuMaxAmount"    column="daifu_max_amount"    />
+        <result property="daifuMinAmount"    column="daifu_min_amount"    />
+    </resultMap>
+
+    <sql id="selectTChannelTopSetVo">
+        select id, product_id, channel_ids, status, mode, rate ,daifu_fee,daifu_min_amount,daifu_max_amount from t_channel_top_set
+    </sql>
+
+    <select id="list" parameterType="TChannelTopSet" resultMap="TChannelTopSetResult">
+        <include refid="selectTChannelTopSetVo"></include>
+        <where>
+            <if test="productId != null  and productId != ''"> and product_id = #{productId}</if>
+            <if test="channelIds != null  and channelIds != ''"> and channel_ids = #{channelIds}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="mode != null "> and mode = #{mode}</if>
+            <if test="rate != null "> and rate = #{rate}</if>
+        </where>
+    </select>
+
+    <select id="selectTChannelTopSetList" parameterType="TChannelTopSet" resultType="com.ruoyi.common.vo.ChannelSetVO">
+        select t1.*,t2.product_name from t_channel_top_set t1
+        inner join t_product t2
+        on t1.product_id = t2.product_id
+        <where>  
+            <if test="productId != null  and productId != ''"> and product_id = #{productId}</if>
+            <if test="channelIds != null  and channelIds != ''"> and channel_ids = #{channelIds}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="mode != null "> and mode = #{mode}</if>
+            <if test="rate != null "> and rate = #{rate}</if>
+        </where>
+    </select>
+    
+    <select id="selectTChannelTopSetById" parameterType="Long" resultMap="TChannelTopSetResult">
+        <include refid="selectTChannelTopSetVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="getUnproduct" resultType="com.ruoyi.channel.domain.TProduct">
+        select product_id,product_name from t_product where product_id
+        not in (select product_id from t_channel_top_set)
+    </select>
+        
+    <insert id="insertTChannelTopSet" parameterType="TChannelTopSet" useGeneratedKeys="true" keyProperty="id">
+        insert into t_channel_top_set
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="productId != null">product_id,</if>
+            <if test="channelIds != null">channel_ids,</if>
+            <if test="status != null">status,</if>
+            <if test="mode != null">mode,</if>
+            <if test="rate != null">rate,</if>
+            <if test="daifuFee != null">daifu_fee,</if>
+            <if test="daifuMaxAmount != null">daifu_max_amount,</if>
+            <if test="daifuMinAmount != null">daifu_min_amount,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="productId != null">#{productId},</if>
+            <if test="channelIds != null">#{channelIds},</if>
+            <if test="status != null">#{status},</if>
+            <if test="mode != null">#{mode},</if>
+            <if test="rate != null">#{rate},</if>
+            <if test="daifuFee != null">#{daifuFee},</if>
+            <if test="daifuMaxAmount != null">#{daifuMaxAmount},</if>
+            <if test="daifuMinAmount != null">#{daifuMinAmount},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTChannelTopSet" parameterType="TChannelTopSet">
+        update t_channel_top_set
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="productId != null">product_id = #{productId},</if>
+            <if test="channelIds != null">channel_ids = #{channelIds},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="mode != null">mode = #{mode},</if>
+            <if test="rate != null">rate = #{rate},</if>
+            <if test="daifuFee != null">daifu_fee = #{daifuFee},</if>
+            <if test="daifuMaxAmount != null">daifu_max_amount = #{daifuMaxAmount},</if>
+            <if test="daifuMinAmount != null">daifu_min_amount = #{daifuMinAmount},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTChannelTopSetById" parameterType="Long">
+        delete from t_channel_top_set where id = #{id}
+    </delete>
+
+    <delete id="deleteTChannelTopSetByIds" parameterType="String">
+        delete from t_channel_top_set where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getProductIdByIds" parameterType="String" resultType="java.lang.String">
+        select product_id from t_channel_top_set where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+</mapper>

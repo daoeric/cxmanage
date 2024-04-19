@@ -1,6 +1,16 @@
 package com.ruoyi.framework.manager.factory;
 
+import java.util.List;
 import java.util.TimerTask;
+
+import com.ruoyi.channel.domain.TChannelTopSet;
+import com.ruoyi.channel.service.ITChannelSetService;
+import com.ruoyi.customer.domain.TCustomer;
+import com.ruoyi.customer.domain.TPaymentRequest;
+import com.ruoyi.customer.domain.TWithdrawRequest;
+import com.ruoyi.customer.service.ITCustomerService;
+import com.ruoyi.customer.service.ITPaymentRequestService;
+import com.ruoyi.customer.service.ITWithdrawRequestService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ruoyi.common.constant.Constants;
@@ -96,6 +106,56 @@ public class AsyncFactory
                 // 远程查询操作地点
                 operLog.setOperLocation(AddressUtils.getRealAddressByIP(operLog.getOperIp()));
                 SpringUtils.getBean(ISysOperLogService.class).insertOperlog(operLog);
+            }
+        };
+    }
+
+    /**
+     * 异步代付回调下游
+     *
+     * @param withdrawRequest 提现订单
+     * @return 任务task
+     */
+    public static TimerTask callback(final TWithdrawRequest withdrawRequest)
+    {
+        return new TimerTask()
+        {
+            @Override
+            public void run()
+            {
+                // 回调下游
+                SpringUtils.getBean(ITWithdrawRequestService.class).callbackCustomer(withdrawRequest);
+            }
+        };
+    }
+
+    /**
+     * 异步代收回调下游
+     *
+     * @param paymentRequest 代收订单
+     * @return 任务task
+     */
+    public static TimerTask paymentCallback(final TPaymentRequest paymentRequest)
+    {
+        return new TimerTask()
+        {
+            @Override
+            public void run()
+            {
+                // 回调下游
+                SpringUtils.getBean(ITPaymentRequestService.class).callbackCustomer(paymentRequest);
+            }
+        };
+    }
+
+    public static TimerTask addCommonChannelAsync(TChannelTopSet tChannelTopSet){
+        return new TimerTask() {
+            @Override
+            public void run() {
+                List<TCustomer> customerList = SpringUtils.getBean(ITCustomerService.class).selectTCustomerList(new TCustomer());
+                for (TCustomer customer : customerList) {
+                    SpringUtils.getBean(ITChannelSetService.class).mergeChannel(tChannelTopSet,customer.getId());
+                }
             }
         };
     }

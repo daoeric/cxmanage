@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.channel.mapper.TWhiteIpMapper">
+    
+    <resultMap type="TWhiteIp" id="TWhiteIpResult">
+        <result property="id"    column="id"    />
+        <result property="alias"    column="alias"    />
+        <result property="ipAddress"    column="ip_address"    />
+        <result property="status"    column="status"    />
+        <result property="code"    column="code"    />
+    </resultMap>
+
+    <sql id="selectTWhiteIpVo">
+        select id, alias, ip_address,status from t_white_ip
+    </sql>
+
+    <select id="selectTWhiteIpList" parameterType="TWhiteIp" resultMap="TWhiteIpResult">
+        <include refid="selectTWhiteIpVo"/>
+        <where>  
+            <if test="alias != null  and alias != ''"> and alias = #{alias}</if>
+            <if test="ipAddress != null  and ipAddress != ''"> and ip_address = #{ipAddress}</if>
+        </where>
+    </select>
+    
+    <select id="selectTWhiteIpById" parameterType="Integer" resultMap="TWhiteIpResult">
+        <include refid="selectTWhiteIpVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertTWhiteIp" parameterType="TWhiteIp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_white_ip
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="alias != null and alias != ''">alias,</if>
+            <if test="ipAddress != null and ipAddress != ''">ip_address,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="alias != null and alias != ''">#{alias},</if>
+            <if test="ipAddress != null and ipAddress != ''">#{ipAddress},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTWhiteIp" parameterType="TWhiteIp">
+        update t_white_ip
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="alias != null and alias != ''">alias = #{alias},</if>
+            <if test="ipAddress != null and ipAddress != ''">ip_address = #{ipAddress},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTWhiteIpById" parameterType="Integer">
+        delete from t_white_ip where id = #{id}
+    </delete>
+
+    <delete id="deleteTWhiteIpByIds" parameterType="String">
+        delete from t_white_ip where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

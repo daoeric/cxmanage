@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.report.mapper.TReportChannelDayMapper">
+
+    <resultMap type="TReportChannelDay" id="TReportChannelDayResult">
+        <result property="id"    column="id"    />
+        <result property="channelId"    column="channel_id"    />
+        <result property="channelName"    column="channel_name"    />
+        <result property="withdrawCount"    column="withdraw_count"    />
+        <result property="withdrawAmount"    column="withdraw_amount"    />
+        <result property="withdrawSuccessCount"    column="withdraw_success_count"    />
+        <result property="withdrawSuccessAmount"    column="withdraw_success_amount"    />
+        <result property="withdrawFee"    column="withdraw_fee"    />
+        <result property="reportDate"    column="report_date"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectTReportChannelDayVo">
+        select id, channel_id, channel_name, withdraw_count, withdraw_amount, withdraw_success_count, withdraw_success_amount, withdraw_fee, report_date, create_time from t_report_channel_day
+    </sql>
+
+    <select id="selectTReportChannelDayList" parameterType="com.ruoyi.common.dto.ReportChannelDayDTO" resultMap="TReportChannelDayResult">
+        <include refid="selectTReportChannelDayVo"/>
+        <where>
+            <if test="channelId != null "> and channel_id = #{channelId}</if>
+            <if test="channelName != null  and channelName != ''"> and channel_name like concat('%', #{channelName}, '%')</if>
+            <if test="begin != null "> and report_date >= #{begin}</if>
+            <if test="end != null "> and report_date &lt;= #{end}</if>
+        </where>
+        order by report_date desc, channel_id desc
+    </select>
+
+    <select id="selectTReportChannelDayById" parameterType="Long" resultMap="TReportChannelDayResult">
+        <include refid="selectTReportChannelDayVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTReportChannelDay" parameterType="TReportChannelDay" useGeneratedKeys="true" keyProperty="id">
+        insert into t_report_channel_day
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="channelId != null">channel_id,</if>
+            <if test="channelName != null">channel_name,</if>
+            <if test="withdrawCount != null">withdraw_count,</if>
+            <if test="withdrawAmount != null">withdraw_amount,</if>
+            <if test="withdrawSuccessCount != null">withdraw_success_count,</if>
+            <if test="withdrawSuccessAmount != null">withdraw_success_amount,</if>
+            <if test="withdrawFee != null">withdraw_fee,</if>
+            <if test="reportDate != null">report_date,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="channelId != null">#{channelId},</if>
+            <if test="channelName != null">#{channelName},</if>
+            <if test="withdrawCount != null">#{withdrawCount},</if>
+            <if test="withdrawAmount != null">#{withdrawAmount},</if>
+            <if test="withdrawSuccessCount != null">#{withdrawSuccessCount},</if>
+            <if test="withdrawSuccessAmount != null">#{withdrawSuccessAmount},</if>
+            <if test="withdrawFee != null">#{withdrawFee},</if>
+            <if test="reportDate != null">#{reportDate},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTReportChannelDay" parameterType="TReportChannelDay">
+        update t_report_channel_day
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="channelId != null">channel_id = #{channelId},</if>
+            <if test="channelName != null">channel_name = #{channelName},</if>
+            <if test="withdrawCount != null">withdraw_count = #{withdrawCount},</if>
+            <if test="withdrawAmount != null">withdraw_amount = #{withdrawAmount},</if>
+            <if test="withdrawSuccessCount != null">withdraw_success_count = #{withdrawSuccessCount},</if>
+            <if test="withdrawSuccessAmount != null">withdraw_success_amount = #{withdrawSuccessAmount},</if>
+            <if test="withdrawFee != null">withdraw_fee = #{withdrawFee},</if>
+            <if test="reportDate != null">report_date = #{reportDate},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTReportChannelDayById" parameterType="Long">
+        delete from t_report_channel_day where id = #{id}
+    </delete>
+
+    <delete id="deleteTReportChannelDayByIds" parameterType="String">
+        delete from t_report_channel_day where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="reportDayList" parameterType="com.ruoyi.common.dto.ReportChannelDayDTO" resultType="java.util.Map">
+        select  ifnull(sum(withdraw_count),0)as withdrawCount,ifnull(sum(withdraw_amount),0) as withdrawAmount,
+        ifnull(sum(withdraw_success_count),0) as withdrawSuccessCount,ifnull(sum(withdraw_success_amount),0) as  withdrawSuccessAmount,
+        ifnull(sum(withdraw_fee),0) as withdrawFee
+        from t_report_channel_day
+        <where>
+            <if test="channelId != null "> and channel_id = #{channelId}</if>
+            <if test="channelName != null  and channelName != ''"> and channel_name like concat('%', #{channelName}, '%')</if>
+            <if test="begin != null "> and report_date >= #{begin}</if>
+            <if test="end != null "> and report_date &lt;= #{end}</if>
+        </where>
+
+    </select>
+
+</mapper>

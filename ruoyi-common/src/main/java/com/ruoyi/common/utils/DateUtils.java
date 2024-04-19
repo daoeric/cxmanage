@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Calendar;
 import java.util.Date;
 import org.apache.commons.lang3.time.DateFormatUtils;
 
@@ -187,5 +188,25 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils
         LocalDateTime localDateTime = LocalDateTime.of(temporalAccessor, LocalTime.of(0, 0, 0));
         ZonedDateTime zdt = localDateTime.atZone(ZoneId.systemDefault());
         return Date.from(zdt.toInstant());
+    }
+
+    public static Date getDateBegin(Date date) throws ParseException {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        Integer year=cal.get(Calendar.YEAR);//获取年
+        Integer month = cal.get(Calendar.MONTH)+1;//获取月（月份从0开始，如果按照中国的习惯，需要加一）
+        Integer day_moneth=cal.get(Calendar.DAY_OF_MONTH);//获取日（月中的某一天）
+        String dateStr = year+"-"+month+"-"+day_moneth+" 00:00:00";
+        return parseDate(dateStr,YYYY_MM_DD_HH_MM_SS);
+    }
+
+    public static Date getDateEnd(Date date) throws ParseException {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        Integer year=cal.get(Calendar.YEAR);//获取年
+        Integer month = cal.get(Calendar.MONTH)+1;//获取月（月份从0开始，如果按照中国的习惯，需要加一）
+        Integer day_moneth=cal.get(Calendar.DAY_OF_MONTH);//获取日（月中的某一天）
+        String dateStr = year+"-"+month+"-"+day_moneth+" 23:59:59";
+        return parseDate(dateStr,YYYY_MM_DD_HH_MM_SS);
     }
 }

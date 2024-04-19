@@ -1,6 +1,10 @@
 package com.ruoyi.framework.web.service;
 
 import javax.annotation.Resource;
+
+import com.ruoyi.common.enums.ExceptionEnum;
+import com.ruoyi.common.exception.CustomException;
+import com.ruoyi.common.utils.google.GoogleAuthenticator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -28,6 +32,8 @@ import com.ruoyi.framework.manager.factory.AsyncFactory;
 import com.ruoyi.framework.security.context.AuthenticationContextHolder;
 import com.ruoyi.system.service.ISysConfigService;
 import com.ruoyi.system.service.ISysUserService;
+
+import java.util.Date;
 
 /**
  * 登录校验方法
@@ -61,10 +67,8 @@ public class SysLoginService
      * @param uuid 唯一标识
      * @return 结果
      */
-    public String login(String username, String password, String code, String uuid)
+    public LoginUser login(String username, String password, String code, String uuid)
     {
-        // 验证码校验
-        validateCaptcha(username, code, uuid);
         // 登录前置校验
         loginPreCheck(username, password);
         // 用户验证
@@ -93,11 +97,31 @@ public class SysLoginService
         {
             AuthenticationContextHolder.clearContext();
         }
-        AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success")));
         LoginUser loginUser = (LoginUser) authentication.getPrincipal();
+        Date loginDate = loginUser.getUser().getLoginDate();
+        if (loginDate == null && StringUtils.isEmpty(code)) {
+            return loginUser;
+        }
+        boolean captchaOnOff = configService.selectCaptchaOnOff();
+        if (captchaOnOff) {
+            if (loginDate != null && StringUtils.isEmpty(code)) {
+                throw new CustomException(ExceptionEnum.GOOGLE_CODE_ERROR);
+            }
+            if (loginDate != null && StringUtils.isNotEmpty(code)) {
+                String checkCode = GoogleAuthenticator.getTOTPCode(loginUser.getUser().getGoogleCode());
+                if(!StringUtils.equals(code,checkCode)){
+                    throw new CustomException(ExceptionEnum.GOOGLE_CODE_ERROR);
+                }
+            }
+        }
+
+
+
         recordLoginInfo(loginUser.getUserId());
+        AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success")));
         // 生成token
-        return tokenService.createToken(loginUser);
+        loginUser.setToken(tokenService.createToken(loginUser));
+        return loginUser;
     }
 
     /**

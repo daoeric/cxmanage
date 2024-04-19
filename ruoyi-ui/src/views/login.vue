@@ -3,12 +3,7 @@
     <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form">
       <h3 class="title">奈斯后台管理系统</h3>
       <el-form-item prop="username">
-        <el-input
-          v-model="loginForm.username"
-          type="text"
-          auto-complete="off"
-          placeholder="账号"
-        >
+        <el-input v-model="loginForm.username" type="text" auto-complete="off" placeholder="账号">
           <svg-icon slot="prefix" icon-class="user" class="el-input__icon input-icon" />
         </el-input>
       </el-form-item>
@@ -23,19 +18,18 @@
           <svg-icon slot="prefix" icon-class="password" class="el-input__icon input-icon" />
         </el-input>
       </el-form-item>
-      <el-form-item prop="code" v-if="captchaEnabled">
+      <el-form-item prop="code" v-if="captchaOnOff">
         <el-input
           v-model="loginForm.code"
           auto-complete="off"
-          placeholder="验证码"
-          style="width: 63%"
+          placeholder="谷歌验证码，如果没有绑定不要输入"
           @keyup.enter.native="handleLogin"
         >
           <svg-icon slot="prefix" icon-class="validCode" class="el-input__icon input-icon" />
         </el-input>
-        <div class="login-code">
-          <img :src="codeUrl" @click="getCode" class="login-code-img"/>
-        </div>
+        <!--        <div class="login-code">
+                  <img :src="codeUrl" @click="getCode" class="login-code-img"/>
+                </div>-->
       </el-form-item>
       <el-checkbox v-model="loginForm.rememberMe" style="margin:0px 0px 25px 0px;">记住密码</el-checkbox>
       <el-form-item style="width:100%;">
@@ -49,15 +43,28 @@
           <span v-if="!loading">登 录</span>
           <span v-else>登 录 中...</span>
         </el-button>
-        <div style="float: right;" v-if="register">
-          <router-link class="link-type" :to="'/register'">立即注册</router-link>
-        </div>
       </el-form-item>
     </el-form>
     <!--  底部  -->
     <div class="el-login-footer">
-      <span>Copyright © 2018-2024 ruoyi.vip All Rights Reserved.</span>
+      <span>Copyright © 2023 赛博朋克 All Rights Reserved.</span>
     </div>
+
+    <el-dialog :title="title" :visible.sync="open" :width="dialogWidth" :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false" :center="true">
+      <el-form ref="form" :model="loginForm" :rules="codeRules">
+        <el-form-item  prop="googleCode">
+          <span><vue-qr :text="codeUrl" :width="qrCodeWidth"></vue-qr></span>
+        </el-form-item>
+        <el-form-item  prop="code">
+          <el-input maxlength="6" v-model="loginForm.code" placeholder="请输入绑定后的谷歌验证码"/>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click.native.prevent="codeLogin">确 定</el-button>
+      </div>
+    </el-dialog>
+
+
   </div>
 </template>
 
@@ -65,34 +72,43 @@
 import { getCodeImg } from "@/api/login";
 import Cookies from "js-cookie";
 import { encrypt, decrypt } from '@/utils/jsencrypt'
+import VueQr from "vue-qr";
 
 export default {
   name: "Login",
+  components: {
+    VueQr
+  },
   data() {
     return {
+      title:"",
       codeUrl: "",
+      cookiePassword: "",
+      open: false,
       loginForm: {
-        username: "admin",
-        password: "admin123",
+        username: "",
+        password: "",
         rememberMe: false,
         code: "",
         uuid: ""
       },
       loginRules: {
         username: [
-          { required: true, trigger: "blur", message: "请输入您的账号" }
+          { required: true, trigger: "blur", message: "用户名不能为空" }
         ],
         password: [
-          { required: true, trigger: "blur", message: "请输入您的密码" }
+          { required: true, trigger: "blur", message: "密码不能为空" }
         ],
-        code: [{ required: true, trigger: "change", message: "请输入验证码" }]
+        // code: [{ required: true, trigger: "change", message: "验证码不能为空" }]
+      },
+      codeRules: {
+        code: [{ required: true, trigger: "change", message: "谷歌验证码不能为空" }]
       },
       loading: false,
-      // 验证码开关
-      captchaEnabled: true,
-      // 注册开关
-      register: false,
-      redirect: undefined
+      captchaOnOff: true,
+      redirect: undefined,
+      dialogWidth: 0,
+      qrCodeWidth:0,
     };
   },
   watch: {
@@ -107,11 +123,19 @@ export default {
     this.getCode();
     this.getCookie();
   },
+  mounted() {
+    this.setDialogWidth();
+    window.onresize = () => {
+      return (() => {
+        this.setDialogWidth()
+      })()
+    }
+  },
   methods: {
     getCode() {
       getCodeImg().then(res => {
-        this.captchaEnabled = res.captchaEnabled === undefined ? true : res.captchaEnabled;
-        if (this.captchaEnabled) {
+        this.captchaOnOff = res.captchaOnOff === undefined ? true : res.captchaOnOff;
+        if (this.captchaOnOff) {
           this.codeUrl = "data:image/gif;base64," + res.img;
           this.loginForm.uuid = res.uuid;
         }
@@ -140,17 +164,45 @@ export default {
             Cookies.remove("password");
             Cookies.remove('rememberMe');
           }
-          this.$store.dispatch("Login", this.loginForm).then(() => {
-            this.$router.push({ path: this.redirect || "/" }).catch(()=>{});
+          this.$store.dispatch("Login", this.loginForm).then((tag) => {
+            if(tag.isGoogle){
+              //调出谷歌验证码
+              this.open = true;
+              this.codeUrl = tag.googleCode;
+              this.title = "谷歌验证码绑定"
+            } else{
+              this.$router.push({ path: this.redirect || "/" }).catch(()=>{});
+            }
           }).catch(() => {
             this.loading = false;
-            if (this.captchaEnabled) {
-              this.getCode();
-            }
           });
         }
       });
-    }
+    },
+    codeLogin(){
+      this.$refs.form.validate(valid => {
+        if(valid){
+          this.loading = true;
+          this.title = "谷歌验证码绑定"
+          this.$store.dispatch("Login", this.loginForm).then((tag) => {
+            this.$router.push({ path: this.redirect || "/" }).catch(()=>{});
+          }).catch(() => {
+            this.loading = false;
+          });
+        }
+      })
+    },
+    setDialogWidth() {
+      const val = document.body.clientWidth;
+      const def = 450 // 默认宽度
+      if (val < def) {
+        this.dialogWidth = '100%'
+        this.qrCodeWidth = '100%'
+      } else {
+        this.dialogWidth = def + 'px'
+        this.qrCodeWidth = (def-50) + 'px'
+      }
+    },
   }
 };
 </script>

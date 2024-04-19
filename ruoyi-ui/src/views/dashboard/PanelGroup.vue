@@ -7,9 +7,9 @@
         </div>
         <div class="card-panel-description">
           <div class="card-panel-text">
-            访客
+            今日交易订单笔数
           </div>
-          <count-to :start-val="0" :end-val="102400" :duration="2600" class="card-panel-num" />
+          <count-to :start-val="0" :end-val="this.panelData.totalCount" :duration="26" class="card-panel-num" />
         </div>
       </div>
     </el-col>
@@ -20,9 +20,9 @@
         </div>
         <div class="card-panel-description">
           <div class="card-panel-text">
-            消息
+            今日交易订单成功
           </div>
-          <count-to :start-val="0" :end-val="81212" :duration="3000" class="card-panel-num" />
+          <count-to :start-val="0" :end-val="this.panelData.successCount" :duration="2600" class="card-panel-num" />
         </div>
       </div>
     </el-col>
@@ -33,9 +33,9 @@
         </div>
         <div class="card-panel-description">
           <div class="card-panel-text">
-            金额
+            今日交易订单发起金额
           </div>
-          <count-to :start-val="0" :end-val="9280" :duration="3200" class="card-panel-num" />
+          <count-to :start-val="0" :end-val="this.panelData.totalAmount" :duration="2600" class="card-panel-num" />
         </div>
       </div>
     </el-col>
@@ -46,9 +46,9 @@
         </div>
         <div class="card-panel-description">
           <div class="card-panel-text">
-            订单
+            今日交易订单成功金额
           </div>
-          <count-to :start-val="0" :end-val="13600" :duration="3600" class="card-panel-num" />
+          <count-to :start-val="0" :end-val="this.panelData.successAmount" :duration="2600" class="card-panel-num" />
         </div>
       </div>
     </el-col>
@@ -61,6 +61,12 @@ import CountTo from 'vue-count-to'
 export default {
   components: {
     CountTo
+  },
+  props:{
+    panelData: {
+      type: Object,
+      required: true
+    }
   },
   methods: {
     handleSetLineChartData(type) {

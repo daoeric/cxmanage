@@ -1,16 +1,17 @@
 package com.ruoyi.common.utils.uuid;
 
+import com.ruoyi.common.exception.UtilException;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
-import com.ruoyi.common.exception.UtilException;
 
 /**
  * 提供通用唯一识别码（universally unique identifier）（UUID）实现
  *
- * @author ruoyi
+ * @author qin-chat
  */
 public final class UUID implements java.io.Serializable, Comparable<UUID>
 {
@@ -66,7 +67,7 @@ public final class UUID implements java.io.Serializable, Comparable<UUID>
     }
 
     /**
-     * 获取类型 4（伪随机生成的）UUID 的静态工厂。
+     * 获取类型 4（伪随机生成的）UUID 的静态工厂。 使用加密的本地线程伪随机数生成器生成该 UUID。
      * 
      * @return 随机生成的 {@code UUID}
      */
@@ -343,25 +344,25 @@ public final class UUID implements java.io.Serializable, Comparable<UUID>
         final StringBuilder builder = new StringBuilder(isSimple ? 32 : 36);
         // time_low
         builder.append(digits(mostSigBits >> 32, 8));
-        if (!isSimple)
+        if (false == isSimple)
         {
             builder.append('-');
         }
         // time_mid
         builder.append(digits(mostSigBits >> 16, 4));
-        if (!isSimple)
+        if (false == isSimple)
         {
             builder.append('-');
         }
         // time_high_and_version
         builder.append(digits(mostSigBits, 4));
-        if (!isSimple)
+        if (false == isSimple)
         {
             builder.append('-');
         }
         // variant_and_sequence
         builder.append(digits(leastSigBits >> 48, 4));
-        if (!isSimple)
+        if (false == isSimple)
         {
             builder.append('-');
         }

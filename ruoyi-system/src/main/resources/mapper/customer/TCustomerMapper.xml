@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.customer.mapper.TCustomerMapper">
+    
+    <resultMap type="TCustomer" id="TCustomerResult">
+        <result property="id"    column="id"    />
+        <result property="balance"    column="balance"    />
+        <result property="lockBalance"    column="lock_balance"    />
+        <result property="waitBalance"    column="wait_balance"    />
+        <result property="settlementType"    column="settlement_type"    />
+        <result property="phoneFlag"    column="phone_flag"    />
+        <result property="emailFlag"    column="email_flag"    />
+        <result property="level"    column="level"    />
+        <result property="priKey"    column="pri_key"    />
+        <result property="googleCode"    column="google_code"    />
+        <result property="ipWhiteList"    column="ip_white_list"    />
+        <result property="userId"    column="user_id"    />
+        <result property="password"    column="password"    />
+        <result property="withdrawPassword"    column="withdraw_password"    />
+        <result property="lastLoginTime"    column="last_login_time"    />
+        <result property="planId"    column="plan_id"    />
+        <result property="agentId"    column="agent_id"    />
+        <result property="isagent"    column="isAgent"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="phone"    column="update_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectTCustomerVo">
+        select id, balance, lock_balance, wait_balance, settlement_type, phone_flag, email_flag, level, pri_key, google_code, ip_white_list, user_id, password, withdraw_password, last_login_time, plan_id, agent_id, isAgent, create_by, create_time, update_by, update_time from t_customer
+    </sql>
+
+    <select id="selectAdminCustomerList" parameterType="com.ruoyi.common.dto.admin.CustomerSearchDto" resultType="com.ruoyi.common.vo.CustomerAdminVO">
+        select t1.*,t2.`name` as channelName,t3.plan_name,t4.username as agentName,
+               (t1.balance + t1.lock_balance) as total_balance
+               from t_customer t1
+        left join
+        t_channel t2 on t1.channel_id = t2.channel_id
+        left join
+        t_settlement_plan t3 on t1.plan_id = t3.plan_id
+        left join
+        t_customer t4 on t1.agent_id = t4.id
+        <where>
+        1=1
+        <if test="mchId != null">
+            and (t1.id = #{mchId} or t1.username = #{mchId})
+        </if>
+        <if test="status != null">
+            and t1.status = #{status}
+        </if>
+        <if test="userType != null">
+            and t1.user_type = #{userType}
+        </if>
+        order by t1.create_time desc
+        </where>
+    </select>
+    <select id="findByIdForUpdate" resultMap="TCustomerResult" useCache="false">
+        <include refid="selectTCustomerVo"/>
+        <where>
+            id = #{mchId} for update
+        </where>
+    </select>
+
+
+    <select id="selectTCustomerList" parameterType="TCustomer" resultMap="TCustomerResult">
+        <include refid="selectTCustomerVo"/>
+        <where>  
+<!--            <if test="balance != null "> and balance = #{balance}</if>-->
+<!--            <if test="lockBalance != null "> and lock_balance = #{lockBalance}</if>-->
+<!--            <if test="waitBalance != null "> and wait_balance = #{waitBalance}</if>-->
+            <if test="settlementType != null "> and settlement_type = #{settlementType}</if>
+            <if test="phoneFlag != null "> and phone_flag = #{phoneFlag}</if>
+            <if test="emailFlag != null "> and email_flag = #{emailFlag}</if>
+            <if test="level != null "> and level = #{level}</if>
+            <if test="priKey != null  and priKey != ''"> and pri_key = #{priKey}</if>
+            <if test="googleCode != null  and googleCode != ''"> and google_code = #{googleCode}</if>
+            <if test="ipWhiteList != null  and ipWhiteList != ''"> and ip_white_list = #{ipWhiteList}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="password != null  and password != ''"> and password = #{password}</if>
+            <if test="withdrawPassword != null  and withdrawPassword != ''"> and withdraw_password = #{withdrawPassword}</if>
+            <if test="lastLoginTime != null "> and last_login_time = #{lastLoginTime}</if>
+            <if test="planId != null "> and plan_id = #{planId}</if>
+            <if test="agentId != null "> and agent_id = #{agentId}</if>
+            <if test="isagent != null "> and isAgent = #{isagent}</if>
+        </where>
+    </select>
+    
+    <select id="selectTCustomerById" parameterType="Long" resultMap="TCustomerResult" >
+        <include refid="selectTCustomerVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertTCustomer" parameterType="TCustomer" useGeneratedKeys="true" keyProperty="id">
+        insert into t_customer
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="balance != null">balance,</if>
+            <if test="lockBalance != null">lock_balance,</if>
+            <if test="waitBalance != null">wait_balance,</if>
+            <if test="settlementType != null">settlement_type,</if>
+            <if test="phoneFlag != null">phone_flag,</if>
+            <if test="emailFlag != null">email_flag,</if>
+            <if test="level != null">level,</if>
+            <if test="priKey != null">pri_key,</if>
+            <if test="googleCode != null">google_code,</if>
+            <if test="ipWhiteList != null">ip_white_list,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="loginPassword != null">password,</if>
+            <if test="withdrawPassword != null">withdraw_password,</if>
+            <if test="lastLoginTime != null">last_login_time,</if>
+            <if test="planId != null">plan_id,</if>
+            <if test="agentId != null">agent_id,</if>
+            <if test="isagent != null">isAgent,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="balance != null">#{balance},</if>
+            <if test="lockBalance != null">#{lockBalance},</if>
+            <if test="waitBalance != null">#{waitBalance},</if>
+            <if test="settlementType != null">#{settlementType},</if>
+            <if test="phoneFlag != null">#{phoneFlag},</if>
+            <if test="emailFlag != null">#{emailFlag},</if>
+            <if test="level != null">#{level},</if>
+            <if test="priKey != null">#{priKey},</if>
+            <if test="googleCode != null">#{googleCode},</if>
+            <if test="ipWhiteList != null">#{ipWhiteList},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="loginPassword != null">#{loginPassword},</if>
+            <if test="withdrawPassword != null">#{withdrawPassword},</if>
+            <if test="lastLoginTime != null">#{lastLoginTime},</if>
+            <if test="planId != null">#{planId},</if>
+            <if test="agentId != null">#{agentId},</if>
+            <if test="isagent != null">#{isagent},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTCustomer" parameterType="TCustomer">
+        update t_customer
+        <trim prefix="SET" suffixOverrides=",">
+<!--            <if test="balance != null">balance = #{balance},</if>-->
+<!--            <if test="lockBalance != null">lock_balance = #{lockBalance},</if>-->
+<!--            <if test="waitBalance != null">wait_balance = #{waitBalance},</if>-->
+            <if test="settlementType != null">settlement_type = #{settlementType},</if>
+            <if test="phoneFlag != null">phone_flag = #{phoneFlag},</if>
+            <if test="emailFlag != null">email_flag = #{emailFlag},</if>
+            <if test="level != null">level = #{level},</if>
+            <if test="priKey != null">pri_key = #{priKey},</if>
+<!--            <if test="googleCode != null">google_code = #{googleCode},</if>-->
+            <if test="ipWhiteList != null">ip_white_list = #{ipWhiteList},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="withdrawPassword != null">withdraw_password = #{withdrawPassword},</if>
+            <if test="lastLoginTime != null">last_login_time = #{lastLoginTime},</if>
+            <if test="planId != null">plan_id = #{planId},</if>
+            <if test="agentId != null">agent_id = #{agentId},</if>
+            <if test="isagent != null">isAgent = #{isagent},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="userType != null">user_type = #{userType},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="deleteTCustomerById" parameterType="Long">
+        update t_customer set status = 1 where id = #{id}
+    </update>
+
+    <update id="deleteTCustomerByIds" parameterType="String">
+        update  t_customer set status = 1 where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="withdrawalCreate">
+        update t_customer set balance = balance - #{amount},lock_balance = lock_balance + #{amount} where id = #{mchId}
+    </update>
+
+    <update id="withdrawalSuccess">
+        update t_customer set lock_balance = lock_balance - #{amount} where id = #{mchId}
+    </update>
+
+    <update id="withdrawalFailed">
+        update t_customer set balance = balance + #{amount},lock_balance = lock_balance - #{amount} where id = #{mchId}
+    </update>
+
+    <select id="sumBalance" parameterType="com.ruoyi.common.dto.admin.CustomerSearchDto" resultType="java.util.Map">
+        select sum(balance) as balance ,sum(lock_balance) as lock_balance , sum(balance+lock_balance) as totalBalance
+        from t_customer
+        <where>
+            1=1
+            <if test="mchId != null">
+                and (id = #{mchId} or username = #{mchId})
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="userType != null">
+                and user_type = #{userType}
+            </if>
+        </where>
+    </select>
+
+</mapper>

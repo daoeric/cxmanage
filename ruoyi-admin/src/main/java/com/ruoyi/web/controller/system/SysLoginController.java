@@ -2,7 +2,11 @@ package com.ruoyi.web.controller.system;
 
 import java.util.List;
 import java.util.Set;
+
+import com.ruoyi.common.core.domain.model.LoginUser;
+import com.ruoyi.common.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,6 +38,9 @@ public class SysLoginController
     @Autowired
     private SysPermissionService permissionService;
 
+    @Value("${ruoyi.name}")
+    private String projectName;
+
     /**
      * 登录方法
      * 
@@ -45,9 +52,13 @@ public class SysLoginController
     {
         AjaxResult ajax = AjaxResult.success();
         // 生成令牌
-        String token = loginService.login(loginBody.getUsername(), loginBody.getPassword(), loginBody.getCode(),
+        LoginUser loginUser = loginService.login(loginBody.getUsername(), loginBody.getPassword(), loginBody.getCode(),
                 loginBody.getUuid());
-        ajax.put(Constants.TOKEN, token);
+        if(StringUtils.isEmpty(loginBody.getCode())){
+            ajax.put("safeMode",loginUser.getUser().getLoginDate()==null?0:1);
+            ajax.put("googleCode","otpauth://totp/"+projectName+"@"+loginUser.getUser().getUserName()+"?secret="+loginUser.getUser().getGoogleCode());
+        }
+        ajax.put(Constants.TOKEN, loginUser.getToken());
         return ajax;
     }
 

@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.customer.mapper.TPaymentRequestMapper">
+    
+    <resultMap type="TPaymentRequest" id="TPaymentRequestResult">
+        <result property="requestId"    column="request_id"    />
+        <result property="mchId"    column="mch_id"    />
+        <result property="status"    column="status"    />
+        <result property="orderAmount"    column="order_amount"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="remark"    column="remark"    />
+        <result property="fee"    column="fee"    />
+        <result property="channelRate"    column="channel_rate"    />
+        <result property="profit"    column="profit"    />
+        <result property="outOrderNo"    column="out_order_no"    />
+    </resultMap>
+
+    <sql id="selectTPaymentRequestVo">
+        select request_id, mch_id, order_no, status, order_amount, channel_id, create_time, create_by, update_time, update_by, remark ,callback_status,fee,channel_rate,profit,out_order_no from t_payment_request
+    </sql>
+
+    <select id="selectTPaymentRequestList" parameterType="TPaymentRequest" resultMap="TPaymentRequestResult">
+        <include refid="selectTPaymentRequestVo"/>
+        <where>  
+            <if test="mchId != null "> and mch_id = #{mchId}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="orderAmount != null "> and order_amount = #{orderAmount}</if>
+        </where>
+    </select>
+
+    <select id="listOrder" parameterType="com.ruoyi.common.dto.admin.DepositSearchDto" resultType="com.ruoyi.common.vo.PaymentRequestVO">
+        select t1.*,t2.name as channel_name,t2.alias,t3.product_name from
+        t_payment_request t1
+        left join
+        t_channel t2
+        on t1.channel_id = t2.channel_id
+        left join t_product t3
+        on t3.product_id = t1.product_id
+        <where>
+            <if test="mchId != null "> and t1.mch_id = #{mchId}</if>
+            <if test="requestId != null and requestId!=''"> and t1.request_id = #{requestId}</if>
+            <if test="status != null "> and t1.status = #{status}</if>
+            <if test="outOrderNo != null and outOrderNo != ''"> and t1.out_order_no = #{outOrderNo}</if>
+            <if test="begin != null"> and t1.create_time &gt;= #{begin}</if>
+            <if test="end != null"> and t1.create_time &lt;= #{end}</if>
+            <if test="productId != null">and t1.product_id = #{productId}</if>
+            <if test="alias != null and alias != ''">and t2.alias = #{alias}</if>
+        </where>
+        order by t1.create_time desc
+    </select>
+
+    <select id="listOrderSum" parameterType="com.ruoyi.common.dto.admin.DepositSearchDto" resultType="java.util.Map">
+        select sum(order_amount) as totalAmount,sum(real_amount) as totalRealAmount,sum(fee) as totalFee,sum(profit) as totalProfit,
+        sum(channel_cost) as totalChannelCost,sum(agent_cost) as totalAgentCost,
+        sum(u_income) as totalIncome ,sum(usdt_profit) as totalUsdtProfit
+        from
+        t_payment_request t1
+        left join
+        t_channel t2 on t1.channel_id = t2.channel_id
+        <where>
+            <if test="mchId != null "> and t1.mch_id = #{mchId}</if>
+            <if test="requestId != null and requestId!=''"> and t1.request_id = #{requestId}</if>
+            <if test="status != null "> and t1.status = #{status}</if>
+            <if test="outOrderNo != null and outOrderNo != ''"> and t1.out_order_no = #{outOrderNo}</if>
+            <if test="begin != null"> and t1.create_time &gt;= #{begin}</if>
+            <if test="end != null"> and t1.create_time &lt;= #{end}</if>
+            <if test="productId != null">and t1.product_id = #{productId}</if>
+            <if test="alias != null and alias != ''">and t2.alias = #{alias}</if>
+        </where>
+    </select>
+
+
+    
+    <select id="selectTPaymentRequestById" parameterType="String" resultMap="TPaymentRequestResult">
+        <include refid="selectTPaymentRequestVo"/>
+        where request_id = #{requestId}
+    </select>
+
+    <insert id="insertDayReport">
+        INSERT INTO t_report_day (mch_id, username, deposit_count, deposit_amount, withdraw_count, withdraw_amount,
+                                  usdt_profit, daifu_profit, recharge_profit, report_date, usdt_income)
+            (select t1.mch_id,
+                     t3.username,
+                     t1.depositCount,
+                     t1.depositAmount,
+                     t2.withdrawCount,
+                     t2.withdrawAmount,
+                     t1.usdtProfit,
+                     t2.withdrawProfit,
+                     t1.depositProfit,
+                     t1.success_time,
+                     t1.usdtIncome
+              from (select date_format(create_time, '%Y-%m-%d') as success_time,
+                           mch_id,
+                           sum(order_amount)                    as depositAmount,
+                           sum(profit)                          as depositProfit,
+                           sum(usdt_profit)                     as usdtProfit,
+                           count(0)                             as depositCount,
+                           sum(u_income)                        as usdtIncome
+                    from t_payment_request
+                    where status = 2
+                      and create_time >= #{begin}
+                      and create_time &lt;= #{end}
+
+                    GROUP BY date_format(create_time, '%Y-%m-%d'), mch_id) t1
+
+                       left join
+                   (select date_format(success_time, '%Y-%m-%d') as success_time,
+                           mch_id,
+                           sum(withdraw_amount)                  as withdrawAmount,
+                           sum(rate_fee + fee - channel_fee)     as withdrawProfit,
+                           count(0)                              as withdrawCount
+                    from t_withdraw_request
+                    where status = 2
+                      and create_time >= #{begin}
+                      and create_time &lt;= #{end}
+                    GROUP BY date_format(success_time, '%Y-%m-%d'), mch_id) t2
+                   on t1.success_time = t2.success_time and t1.mch_id = t2.mch_id
+                       left join t_customer t3 on t1.mch_id = t3.id
+              order by success_time, mch_id)
+
+             union all
+
+             (select IFNULL(t1.mch_id, t2.mch_id) as mch_id,
+                     t3.username,
+                     '0'                            as depositCount,
+                     '0'                            as depositAmount,
+                     '0'                            as withdrawCount,
+                     t2.withdrawAmount,
+                     '0'                            as usdtProfit,
+                     t2.withdrawProfit,
+                     '0'                            as depositProfit,
+                     t2.success_time,
+                     '0'                            as usdtIncome
+              from (select date_format(create_time, '%Y-%m-%d') as success_time,
+                           mch_id,
+                           sum(order_amount)                    as depositAmount,
+                           sum(profit)                          as depositProfit,
+                           sum(usdt_profit)                     as usdtProfit,
+                           count(0)                             as depositCount,
+                           sum(u_income)                        as usdtIncome
+                    from t_payment_request
+                    where status = 2
+                      and create_time >= #{begin}
+                      and create_time &lt;= #{end}
+
+                    GROUP BY date_format(create_time, '%Y-%m-%d'), mch_id) t1
+
+                       right join
+                   (select date_format(success_time, '%Y-%m-%d') as success_time,
+                           mch_id,
+                           sum(withdraw_amount)                  as withdrawAmount,
+                           sum(rate_fee + fee - channel_fee)     as withdrawProfit,
+                           count(0)                              as withdrawCount
+                    from t_withdraw_request
+                    where status = 2
+                      and create_time >= #{begin}
+                      and create_time &lt;= #{end}
+                    GROUP BY date_format(success_time, '%Y-%m-%d'), mch_id) t2
+                   on t1.success_time = t2.success_time and t1.mch_id = t2.mch_id
+                       left join t_customer t3 on t2.mch_id = t3.id
+              where t1.mch_id is null
+              order by success_time, mch_id)
+
+
+
+    </insert>
+
+    <insert id="insertChannelDayReport">
+        INSERT INTO t_report_channel_day (channel_id,channel_name,withdraw_count,withdraw_amount,
+withdraw_success_count,withdraw_success_amount,withdraw_fee,report_date)
+(select t1.channel_id,t3.`name`,t1.withdrawCount as withdraw_count,t1.withdrawAmount as withdraw_amount,t2.withdrawCount as withdraw_success_count,
+t2.withdrawAmount as withdraw_success_amount,t2.fee as withdraw_fee,t1.create_time as report_time
+from
+(select date_format(create_time, '%Y-%m-%d') as create_time,mch_id,sum(withdraw_amount) as withdrawAmount, sum(fee) as fee ,count(0) as withdrawCount , channel_id
+from t_withdraw_request
+ where
+ create_time >= #{begin} and create_time &lt;= #{end}
+GROUP BY date_format(create_time, '%Y-%m-%d'),channel_id) t1
+left join
+(select date_format(create_time, '%Y-%m-%d') as create_time,mch_id,sum(withdraw_amount) as withdrawAmount, sum(fee) as fee ,count(0) as withdrawCount , channel_id
+from t_withdraw_request
+where status =2 and create_time >= #{begin} and create_time &lt;= #{end}
+GROUP BY date_format(create_time, '%Y-%m-%d'),channel_id) t2
+on t1.channel_id = t2.channel_id and date_format(t1.create_time, '%Y-%m-%d') = date_format(t2.create_time, '%Y-%m-%d')
+left join t_channel t3 on t1.channel_id = t3.channel_id)
+
+    </insert>
+        
+    <insert id="insertTPaymentRequest" parameterType="TPaymentRequest">
+        insert into t_payment_request
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="requestId != null">request_id,</if>
+            <if test="mchId != null">mch_id,</if>
+            <if test="status != null">status,</if>
+            <if test="orderAmount != null">order_amount,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="requestId != null">#{requestId},</if>
+            <if test="mchId != null">#{mchId},</if>
+            <if test="status != null">#{status},</if>
+            <if test="orderAmount != null">#{orderAmount},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTPaymentRequest" parameterType="TPaymentRequest">
+        update t_payment_request
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="mchId != null">mch_id = #{mchId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="orderAmount != null">order_amount = #{orderAmount},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where request_id = #{requestId}
+    </update>
+
+    <delete id="deleteTPaymentRequestById" parameterType="String">
+        delete from t_payment_request where request_id = #{requestId}
+    </delete>
+
+    <delete id="deleteTPaymentRequestByIds" parameterType="String">
+        delete from t_payment_request where request_id in 
+        <foreach item="requestId" collection="array" open="(" separator="," close=")">
+            #{requestId}
+        </foreach>
+    </delete>
+
+    <select id="listCustomer" resultType="com.ruoyi.common.vo.front.TPaymentRequestVO">
+        select t1.*,t2.product_name from 
+        t_payment_request t1
+        left join 
+        t_product t2
+        on t1.product_id = t2.product_id
+        inner join
+        t_customer t3
+        on t1.mch_id = t3.id
+        <where>
+            <if test="isAgent">
+                t3.agent_id = #{mchId}
+            </if>
+            <if test="!isAgent">
+                mch_id = #{mchId}
+            </if>
+            <if test="dto.mchId != null">and t1.mch_id = #{dto.mchId} </if>
+            <if test="dto.begin != null">and t1.create_time &gt;= #{dto.begin}</if>
+            <if test="dto.end != null"> and t1.create_time &lt;= #{dto.end}</if>
+            <if test="dto.orderNo != null and dto.orderNo != ''"> and request_id = #{dto.orderNo}</if>
+            <if test="dto.status != null">and t1.status = #{dto.status}</if>
+            <if test="dto.outOrderNo != null and dto.outOrderNo!= ''">and out_order_no = #{dto.outOrderNo}</if>
+            <if test="dto.productId != null and dto.productId!= ''">and t1.product_id = #{dto.productId}</if>
+
+        </where>
+        order by create_time desc
+
+
+    </select>
+
+
+    <select id="sum" resultType="java.util.Map">
+        select sum(order_amount) as amount,sum(agent_cost) as agentCost ,sum(fee) as totalFee from
+        t_payment_request t1
+        inner join
+        t_customer t3
+        on t1.mch_id = t3.id
+        <where>
+            <if test="isAgent">
+                t3.agent_id = #{mchId}
+            </if>
+            <if test="!isAgent">
+                mch_id = #{mchId}
+            </if>
+            <if test="dto.mchId != null">and t1.mch_id = #{dto.mchId} </if>
+            <if test="dto.begin != null">and t1.create_time &gt;= #{dto.begin}</if>
+            <if test="dto.end != null"> and t1.create_time &lt;= #{dto.end}</if>
+            <if test="dto.orderNo != null and dto.orderNo != ''"> and request_id = #{dto.orderNo}</if>
+            <if test="dto.status != null">and t1.status = #{dto.status}</if>
+            <if test="dto.outOrderNo != null and dto.outOrderNo!= ''">and out_order_no = #{dto.outOrderNo}</if>
+            <if test="dto.productId != null and dto.productId!= ''">and t1.product_id = #{dto.productId}</if>
+        </where>
+    </select>
+
+    <select id="successSum" resultType="java.util.Map">
+        select sum(order_amount) as successAmount,sum(agent_cost) as successAgentCost,
+               sum(fee) as successFee,count(1) as successCount
+               from
+        t_payment_request t1
+        inner join
+        t_customer t3
+        on t1.mch_id = t3.id
+        <where>
+            t1.status = 2
+            <if test="isAgent">
+                and t3.agent_id = #{mchId}
+            </if>
+            <if test="!isAgent">
+                and mch_id = #{mchId}
+            </if>
+            <if test="dto.mchId != null">and t1.mch_id = #{dto.mchId} </if>
+            <if test="dto.begin != null">and t1.create_time &gt;= #{dto.begin}</if>
+            <if test="dto.end != null"> and t1.create_time &lt;= #{dto.end}</if>
+            <if test="dto.orderNo != null and dto.orderNo != ''"> and request_id = #{dto.orderNo}</if>
+            <if test="dto.outOrderNo != null and dto.outOrderNo!= ''">and out_order_no = #{dto.outOrderNo}</if>
+            <if test="dto.productId != null and dto.productId!= ''">and t1.product_id = #{dto.productId}</if>
+        </where>
+    </select>
+</mapper>

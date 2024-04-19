@@ -219,6 +219,16 @@ public class SysConfigServiceImpl implements ISysConfigService
         return UserConstants.UNIQUE;
     }
 
+    @Override
+    public boolean selectCaptchaOnOff() {
+        String captchaOnOff = selectConfigByKey("sys.account.captchaOnOff");
+        if (StringUtils.isEmpty(captchaOnOff))
+        {
+            return true;
+        }
+        return Convert.toBool(captchaOnOff);
+    }
+
     /**
      * 设置cache key
      * 

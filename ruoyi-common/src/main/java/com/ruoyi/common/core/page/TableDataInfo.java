@@ -2,6 +2,7 @@ package com.ruoyi.common.core.page;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 表格分页数据对象
@@ -24,11 +25,22 @@ public class TableDataInfo implements Serializable
     /** 消息内容 */
     private String msg;
 
+    /** 额外数据*/
+    private Map<String,Object> option;
+
     /**
      * 表格数据对象
      */
     public TableDataInfo()
     {
+    }
+
+    public Map<String, Object> getOption() {
+        return option;
+    }
+
+    public void setOption(Map<String, Object> option) {
+        this.option = option;
     }
 
     /**

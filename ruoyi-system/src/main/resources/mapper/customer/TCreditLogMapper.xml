@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.customer.mapper.TCreditLogMapper">
+    
+    <resultMap type="TCreditLog" id="TCreditLogResult">
+        <result property="id"    column="id"    />
+        <result property="mchId"    column="mch_id"    />
+        <result property="opearteType"    column="opearte_type"    />
+        <result property="opearteAmount"    column="opearte_amount"    />
+        <result property="preBalance"    column="pre_balance"    />
+        <result property="postBalance"    column="post_balance"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="refId"    column="ref_id"    />
+        <result property="fee"    column="fee"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTCreditLogVo">
+        select id, mch_id, opearte_type, opearte_amount, pre_balance, post_balance, create_time, create_by, update_time, update_by, ref_id,fee,remark from t_credit_log
+    </sql>
+
+    <select id="selectTCreditLogList" parameterType="com.ruoyi.common.dto.admin.CreditLogSearchDto" resultMap="TCreditLogResult">
+        <include refid="selectTCreditLogVo"/>
+        <where>  
+            <if test="mchId != null "> and mch_id = #{mchId}</if>
+            <if test="opearteType != null "> and opearte_type = #{opearteType}</if>
+            <if test="refId != null  and refId != ''"> and ref_id = #{refId}</if>
+            <if test="begin != null"> and create_time &gt;= #{begin}</if>
+            <if test="end != null"> and create_time &lt;= #{end}</if>
+        </where>
+        order by create_time desc
+    </select>
+    
+    <select id="selectTCreditLogById" parameterType="String" resultMap="TCreditLogResult">
+        <include refid="selectTCreditLogVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertTCreditLog" parameterType="TCreditLog">
+        insert into t_credit_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="mchId != null">mch_id,</if>
+            <if test="opearteType != null">opearte_type,</if>
+            <if test="opearteAmount != null">opearte_amount,</if>
+            <if test="preBalance != null">pre_balance,</if>
+            <if test="postBalance != null">post_balance,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="refId != null">ref_id,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="mchId != null">#{mchId},</if>
+            <if test="opearteType != null">#{opearteType},</if>
+            <if test="opearteAmount != null">#{opearteAmount},</if>
+            <if test="preBalance != null">#{preBalance},</if>
+            <if test="postBalance != null">#{postBalance},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="refId != null">#{refId},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTCreditLog" parameterType="TCreditLog">
+        update t_credit_log
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="mchId != null">mch_id = #{mchId},</if>
+            <if test="opearteType != null">opearte_type = #{opearteType},</if>
+            <if test="opearteAmount != null">opearte_amount = #{opearteAmount},</if>
+            <if test="preBalance != null">pre_balance = #{preBalance},</if>
+            <if test="postBalance != null">post_balance = #{postBalance},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="refId != null">ref_id = #{refId},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTCreditLogById" parameterType="String">
+        delete from t_credit_log where id = #{id}
+    </delete>
+
+    <delete id="deleteTCreditLogByIds" parameterType="String">
+        delete from t_credit_log where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

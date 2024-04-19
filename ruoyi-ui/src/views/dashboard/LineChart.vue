@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import * as echarts from 'echarts'
+import echarts from 'echarts'
 require('echarts/theme/macarons') // echarts theme
 import resize from './mixins/resize'
 
@@ -20,7 +20,7 @@ export default {
     },
     height: {
       type: String,
-      default: '350px'
+      default: '600px'
     },
     autoResize: {
       type: Boolean,
@@ -61,10 +61,10 @@ export default {
       this.chart = echarts.init(this.$el, 'macarons')
       this.setOptions(this.chartData)
     },
-    setOptions({ expectedData, actualData } = {}) {
+    setOptions({ dateStr, successAmount } = {}) {
       this.chart.setOption({
         xAxis: {
-          data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          data: dateStr,
           boundaryGap: false,
           axisTick: {
             show: false
@@ -90,10 +90,10 @@ export default {
           }
         },
         legend: {
-          data: ['expected', 'actual']
+          data: ['交易订单成功金额']
         },
         series: [{
-          name: 'expected', itemStyle: {
+          name: '交易量', itemStyle: {
             normal: {
               color: '#FF005A',
               lineStyle: {
@@ -104,11 +104,11 @@ export default {
           },
           smooth: true,
           type: 'line',
-          data: expectedData,
+          data: successAmount,
           animationDuration: 2800,
           animationEasing: 'cubicInOut'
         },
-        {
+        /*{
           name: 'actual',
           smooth: true,
           type: 'line',
@@ -127,7 +127,7 @@ export default {
           data: actualData,
           animationDuration: 2800,
           animationEasing: 'quadraticOut'
-        }]
+        }*/]
       })
     }
   }
